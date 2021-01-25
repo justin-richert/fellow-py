@@ -33,6 +33,6 @@ setup(
     test_suite="tests",
     tests_require=["pytest>=3"],
     url="https://github.com/justin-richert/fellow-py",
-    version="0.1.0",
+    version="0.1.1",
     zip_safe=False,
 )
