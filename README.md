@@ -14,7 +14,7 @@ import asyncio
 import fellow
 
 async def main()
-    kettle = fellow.StaggEKGPlusKettle("MA::CA::DD::RE::SS::01")
+    kettle = fellow.StaggEKGPlusKettle("MA:CA:DD:RE:SS:01")
 
     try:
         await kettle.connect()
@@ -24,7 +24,7 @@ async def main()
 
         print(kettle.current_temperature, kettle.target_temperature)
 
-        kettle.set_target_temperature(206)
+        await kettle.set_target_temperature(206)
 
         await asyncio.sleep(2)
 
