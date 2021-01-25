@@ -28,7 +28,7 @@ setup(
     include_package_data=True,
     keywords="fellow",
     name="fellow-py",
-    packages=find_packages(include=["fellow", "fellow.*"]),
+    packages=find_packages(include=["fellow_py", "fellow_py.*"]),
     setup_requires=["pytest-runner"],
     test_suite="tests",
     tests_require=["pytest>=3"],
