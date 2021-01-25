@@ -5,15 +5,13 @@ import functools
 import logging
 from binascii import hexlify
 
+from fellow.exceptions import FellowException
+
 MAGIC_PASSWORD = "efdd0b3031323334353637383930313233349a6d"
 CHARACTERISTIC_1820 = "00002a80-0000-1000-8000-00805f9b34fb"
 
 
 logger = logging.getLogger(__name__)
-
-
-class FellowException(Exception):
-    """Custom exception to be raised by Fellow package."""
 
 
 def wait(func):
@@ -32,7 +30,7 @@ def wait(func):
 
 
 class StaggEKGPlusKettle:
-    def __init__(self, address, name, command_timeout=None):
+    def __init__(self, address, name=None, command_timeout=None):
         """Initialize Stagg Kettle."""
         from bleak import BleakClient
 
@@ -64,7 +62,7 @@ class StaggEKGPlusKettle:
         """Return target temperature."""
         return self._target_temperature
 
-    def _subscription_callback(self, sender, data):
+    def _subscription_callback(self, _, data):
         """Handle data sent by kettle."""
 
         hex_data = hexlify(data)
@@ -129,9 +127,14 @@ class StaggEKGPlusKettle:
         await self._write(CHARACTERISTIC_1820, "efdd0a0400000400")
 
     @wait
-    async def set_target_temperature(self, target_temp):
+    async def set_target_temperature(self, target_temp: int):
         """Set the target temperature for the kettle."""
         logger.debug(f"Setting the kettle's target temperature to {target_temp}...")
+
+        if not (104 <= target_temp <= 212):
+            raise ValueError(
+                f"Target temperature {target_temp} is outside the supported temperature range of 104 degrees F to 212 degrees F."  # noqa
+            )
 
         ss_hex = hex(self._ss).lstrip("0x")
         while len(ss_hex) < 2:
