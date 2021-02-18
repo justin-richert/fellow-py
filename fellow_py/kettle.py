@@ -8,7 +8,7 @@ from binascii import hexlify
 
 import click
 
-from exceptions import FellowException
+from fellow_py.exceptions import FellowException
 
 MAGIC_PASSWORD = "efdd0b3031323334353637383930313233349a6d"
 CHARACTERISTIC_1820 = "00002a80-0000-1000-8000-00805f9b34fb"

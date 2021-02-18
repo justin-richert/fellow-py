@@ -1,7 +1,7 @@
 """Kettle discovery module."""
 
-from fellow.exceptions import FellowException
-from fellow.kettle import StaggEKGPlusKettle
+from fellow_py.exceptions import FellowException
+from fellow_py.kettle import StaggEKGPlusKettle
 
 
 async def discover_by_address(address: str) -> StaggEKGPlusKettle:
