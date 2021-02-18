@@ -42,7 +42,7 @@ class StaggEKGPlusKettle:
 
         self._address = address
         self._client = BleakClient(address)
-        self._current_temperature = None
+        self._current_temperature = 32
         self._last_seen = None
         self._name = name
         self._ss = 0
@@ -57,6 +57,14 @@ class StaggEKGPlusKettle:
     @property
     def name(self):
         return self._name
+
+    @property
+    def is_on(self):
+        """
+        Check if the kettle is turned on. The kettle will always communicate a
+        current temperature of 32 degrees if the kettle is off.
+        """
+        return self.current_temperature != 32
 
     @property
     def current_temperature(self):
