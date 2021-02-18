@@ -154,10 +154,10 @@ class StaggEKGPlusKettle:
         """Turn the kettle off."""
         logger.debug("Turning the kettle off...")
         await self._write(CHARACTERISTIC_1820, "efdd0a0400000400")
-        asyncio.sleep(1.0)
+        await asyncio.sleep(1.0)
         if self.current_temperature != 32:
             await self._write(CHARACTERISTIC_1820, "efdd0a0400000400")
-        asyncio.sleep(1.0)
+        await asyncio.sleep(1.0)
         if self.current_temperature != 32:
             await self._write(CHARACTERISTIC_1820, "efdd0a0400000400")
         self._temperature_graph = []
