@@ -3,6 +3,7 @@
 import asyncio
 import functools
 import logging
+import time
 from binascii import hexlify
 
 from fellow.exceptions import FellowException
@@ -48,6 +49,8 @@ class StaggEKGPlusKettle:
         self._ss = 0
         self._target_temperature = None
         self._timeout = command_timeout or 5
+        self._last_temp_time = None
+        self._temperature_graph = []
 
     @property
     def address(self):
@@ -76,22 +79,31 @@ class StaggEKGPlusKettle:
         """Return target temperature."""
         return self._target_temperature
 
+    @property
+    def average_warming_rate(self):
+        """Calculate warming rate from temp graph (in degrees F/second)."""
+        if len(self._temperature_graph) < 2:
+            return
+        x1, y1 = self._temperature_graph[0]
+        x2, y2 = self._temperature_graph[-1]
+        return (y2 - y1) / ((x2 - x1) / 1000)
+
     def _subscription_callback(self, _, data):
         """Handle data sent by kettle."""
 
         hex_data = hexlify(data)
 
-        if self._last_seen is None:
-            if hex_data == b"ffffffff":
-                self._last_seen = 0
-            else:
-                return
-
         if hex_data == b"ffffffff":
             self._last_seen = 0
-        elif len(hex_data) == 8 and hex_data != b"00000000":
+        elif self._last_seen in (0, 1) and len(hex_data) == 8 and hex_data != b"00000000":
             if self._last_seen == 0:
+                self._last_current_temperature = self.current_temperature
                 self._current_temperature = int(hex_data[:2], 16)
+                now_as_millis = int(time.time() * 1000)
+                now_as_seconds = round(now_as_millis, -3)
+                if self._last_temp_time is None or round(now_as_seconds, -3) > self._last_temp_time:
+                    self._temperature_graph.append((now_as_millis, self._current_temperature))
+                    self._last_temp_time = now_as_seconds
                 self._last_seen = 1
             elif self._last_seen == 1:
                 self._target_temperature = int(hex_data[:2], 16)
@@ -133,6 +145,7 @@ class StaggEKGPlusKettle:
         """Turn the kettle on."""
         logger.debug("Turning the kettle on...")
         await self._write(CHARACTERISTIC_1820, "efdd0a0000010100")
+        self._temperature_graph = []
 
     @wait(timeout=15)
     async def turn_off(self):
