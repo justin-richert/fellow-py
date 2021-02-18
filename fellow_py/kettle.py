@@ -6,6 +6,7 @@ import logging
 from binascii import hexlify
 
 from fellow.exceptions import FellowException
+import click
 
 MAGIC_PASSWORD = "efdd0b3031323334353637383930313233349a6d"
 CHARACTERISTIC_1820 = "00002a80-0000-1000-8000-00805f9b34fb"
@@ -154,17 +155,22 @@ class StaggEKGPlusKettle:
         self._ss += 1 % 256
 
 
-async def main():
+def coroutine(f):
+    @functools.wraps(f)
+    def wrapper(*args, **kwargs):
+        return asyncio.run(f(*args, **kwargs))
 
-    # import sys
-    # l = logging.getLogger("asyncio")
-    # l.setLevel(logging.DEBUG)
-    # h = logging.StreamHandler(sys.stdout)
-    # h.setLevel(logging.DEBUG)
-    # l.addHandler(h)
-    # logger.addHandler(h)
+    return wrapper
 
-    address = "B437CABC-98F4-4188-B404-11890D0A3F48"
+
+@click.command()
+@click.argument("address")
+@click.option("--duration", default=180)
+@coroutine
+async def main(address, duration):
+    """Demo script."""
+
+    logger.setLevel(logging.DEBUG)
 
     from bleak import BleakScanner
 

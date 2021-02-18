@@ -6,6 +6,8 @@
 #
 bleak==0.10.0
     # via -r requirements.in
+click==7.1.2
+    # via -r requirements.in
 pyobjc-core==7.1
     # via
     #   bleak
