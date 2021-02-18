@@ -15,19 +15,24 @@ CHARACTERISTIC_1820 = "00002a80-0000-1000-8000-00805f9b34fb"
 logger = logging.getLogger(__name__)
 
 
-def wait(func):
+def wait(func=None, timeout=None):
     """Decorator to provide reusable wait_for logic around bluetooth commands."""
 
-    @functools.wraps(func)
-    async def wrapper(self, *args, **kwargs):
-        """Function to return in place of the original function."""
+    def outer(func):
+        @functools.wraps(func)
+        async def wrapper(self, *args, **kwargs):
+            """Function to return in place of the original function."""
 
-        try:
-            await asyncio.wait_for(func(self, *args, **kwargs), self._timeout)
-        except asyncio.TimeoutError as e:
-            raise FellowException from e
+            try:
+                return await asyncio.wait_for(func(self, *args, **kwargs), timeout or self._timeout)
+            except asyncio.TimeoutError as e:
+                raise FellowException from e
 
-    return wrapper
+        return wrapper
+
+    if func:
+        return outer(func)
+    return outer
 
 
 class StaggEKGPlusKettle:
@@ -121,11 +126,18 @@ class StaggEKGPlusKettle:
         logger.debug("Turning the kettle on...")
         await self._write(CHARACTERISTIC_1820, "efdd0a0000010100")
 
-    @wait
+    @wait(timeout=15)
     async def turn_off(self):
         """Turn the kettle off."""
         logger.debug("Turning the kettle off...")
         await self._write(CHARACTERISTIC_1820, "efdd0a0400000400")
+        asyncio.sleep(1.0)
+        if self.current_temperature != 32:
+            await self._write(CHARACTERISTIC_1820, "efdd0a0400000400")
+        asyncio.sleep(1.0)
+        if self.current_temperature != 32:
+            await self._write(CHARACTERISTIC_1820, "efdd0a0400000400")
+        self._temperature_graph = []
 
     @wait
     async def set_target_temperature(self, target_temp: int):
