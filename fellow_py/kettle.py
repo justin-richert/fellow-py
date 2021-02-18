@@ -6,8 +6,9 @@ import logging
 import time
 from binascii import hexlify
 
-from fellow.exceptions import FellowException
 import click
+
+from exceptions import FellowException
 
 MAGIC_PASSWORD = "efdd0b3031323334353637383930313233349a6d"
 CHARACTERISTIC_1820 = "00002a80-0000-1000-8000-00805f9b34fb"
@@ -59,6 +60,7 @@ class StaggEKGPlusKettle:
 
     @property
     def name(self):
+        """Return the name of the kettle."""
         return self._name
 
     @property
@@ -122,7 +124,7 @@ class StaggEKGPlusKettle:
     @wait
     async def connect(self):
         """Establish a bluetooth connection to the kettle."""
-        logger.debug("Connecting to self._client...")
+        logger.debug("Connecting to kettle...")
         await self._client.connect()
         await self._write(CHARACTERISTIC_1820, MAGIC_PASSWORD)
         await self._client.start_notify(CHARACTERISTIC_1820, self._subscription_callback)
@@ -130,7 +132,7 @@ class StaggEKGPlusKettle:
     @wait
     async def disconnect(self):
         """Disconnect from the bluetooth device."""
-        logger.debug("Disconnecting from self._client...")
+        logger.debug("Disconnecting from kettle...")
         await self._client.stop_notify(CHARACTERISTIC_1820)
         await self._client.disconnect()
 
@@ -215,15 +217,15 @@ async def main(address, duration):
     if await kettle._client.is_connected():
         print("Connected!")
 
-    print(kettle.current_temperature, kettle.target_temperature)
-    await asyncio.sleep(1.0)
-    print(kettle.current_temperature, kettle.target_temperature)
-    await asyncio.sleep(1.0)
-    print(kettle.current_temperature, kettle.target_temperature)
-    await asyncio.sleep(1.0)
-    print(kettle.current_temperature, kettle.target_temperature)
-    await asyncio.sleep(1.0)
-    print(kettle.current_temperature, kettle.target_temperature)
+    count = 0
+    try:
+        while count < int(duration / 2):
+            count += 1
+            print(kettle.current_temperature, kettle.target_temperature)
+            print(kettle.average_warming_rate)
+            await asyncio.sleep(2.0)
+    except Exception:
+        pass
 
     await kettle.turn_off()
     await kettle.disconnect()
