@@ -117,7 +117,7 @@ class StaggEKGPlusKettle:
         logger.debug(f"Writing data {data} to characteristic {uuid}")
 
         try:
-            await self._client.write_gatt_char(uuid, bytes.fromhex(data))
+            await self._client.write_gatt_char(uuid, bytearray(bytes.fromhex(data)))
         except Exception as e:
             raise FellowException from e
 
